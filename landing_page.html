@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TruthLens</title>
+  <!-- Intégration de la police moderne -->
+  <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,600&display=swap" rel="stylesheet">
+  <!-- Intégration d'icônes FontAwesome professionnelles sans attribut integrity -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" referrerpolicy="no-referrer" />
+  <style>
+    /* Variables de base pour Dark Mode */
+    :root {
+      --bg-color: #0a0a0a;
+      --text-color: #e0e0e0;
+      --primary-color: #00eaff;
+      --hover-color: #00b4d8;
+      --glass-bg: rgba(10, 10, 10, 0.8);
+      --particle-color: rgba(255,255,255,0.8);
+    }
+    /* Variables Light Mode via classe .light-theme */
+    .light-theme {
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --primary-color: #007bff;
+      --hover-color: #0056b3;
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --particle-color: rgba(0,0,0,0.8);
+    }
+    /* Ombre pour le header en light mode */
+    .light-theme header {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Base & Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      overflow-x: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Fond animé en canvas */
+    #bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: var(--bg-color);
+      transition: background 0.3s ease;
+    }
+
+    /* HEADER */
+    header {
+      position: fixed;
+      width: 100%;
+      padding: 20px 50px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      transition: padding 0.3s ease, background 0.3s ease;
+    }
+    header.scrolled {
+      padding: 10px 50px;
+      background: var(--glass-bg);
+    }
+    .logo {
+      font-size: 2em;
+      font-weight: 600;
+      color: var(--primary-color);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { text-shadow: 0 0 5px var(--primary-color); }
+      50% { text-shadow: 0 0 20px var(--primary-color); }
+      100% { text-shadow: 0 0 5px var(--primary-color); }
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 30px;
+    }
+    nav ul li a {
+      font-weight: 500;
+      color: var(--text-color);
+      transition: color 0.3s ease;
+      text-decoration: none;
+    }
+    nav ul li a:hover {
+      color: var(--hover-color);
+    }
+    /* Bouton toggle thème avec icônes FontAwesome */
+    .theme-toggle {
+      background: transparent;
+      border: none;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: var(--text-color);
+      transition: transform 0.3s ease;
+      margin-left: 20px;
+    }
+    .theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    /* Menu Mobile & Hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .hamburger span {
+      width: 30px;
+      height: 3px;
+      background: var(--primary-color);
+      transition: all 0.3s ease;
+    }
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: 70px;
+      right: 50px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .mobile-menu a {
+      padding: 15px 20px;
+      color: var(--text-color);
+      text-decoration: none;
+    }
+    .mobile-menu a:hover {
+      background: rgba(0, 234, 255, 0.1);
+      color: var(--hover-color);
+    }
+    @media (max-width: 768px) {
+      nav ul { display: none; }
+      .hamburger { display: flex; }
+    }
+
+    /* SECTION HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 20px;
+    }
+    .hero-content {
+      animation: fadeInUp 1.2s ease forwards;
+      opacity: 0;
+    }
+    .hero h1 {
+      font-size: 4em;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px var(--primary-color);
+    }
+    .hero p {
+      font-size: 1.5em;
+      margin: 0 auto 30px;
+      max-width: 700px;
+    }
+    .btn {
+      padding: 12px 30px;
+      background: var(--primary-color);
+      border: none;
+      border-radius: 30px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s ease;
+    }
+    .btn:hover {
+      background: var(--hover-color);
+      transform: scale(1.05);
+    }
+
+    /* Sections générales */
+    section {
+      padding: 80px 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s ease-out;
+    }
+    section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    section h2 {
+      font-size: 2.8em;
+      margin-bottom: 20px;
+      color: var(--primary-color);
+    }
+    section p {
+      font-size: 1.2em;
+      line-height: 1.8;
+    }
+
+    /* Cartes de fonctionnalités */
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 40px;
+    }
+    .feature {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      flex: 1 1 300px;
+      max-width: 300px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+    .feature:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Section Démo Interactive */
+    #demo textarea {
+      width: 80%;
+      max-width: 600px;
+      margin: 0 auto 20px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      resize: vertical;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+      font-family: 'Poppins', sans-serif;
+      font-size: 1em;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .light-theme #demo textarea {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      color: var(--text-color);
+    }
+    #demo #result {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 40px 20px;
+      text-align: center;
+      font-size: 0.9em;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 60px;
+    }
+
+    /* Bouton Retour en Haut amélioré */
+    #backToTop {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--primary-color);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: background 0.3s ease, transform 0.3s ease;
+      z-index: 100;
+      display: none;
+    }
+    #backToTop:hover {
+      background: var(--hover-color);
+      transform: scale(1.1);
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(40px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Fond animé en canvas -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- HEADER -->
+  <header id="header">
+    <div class="logo">TruthLens</div>
+    <nav>
+      <ul>
+        <li><a href="#presentation">Présentation</a></li>
+        <li><a href="#features">Fonctionnalités</a></li>
+        <li><a href="#demo">Démo</a></li>
+      </ul>
+    </nav>
+    <!-- Bouton toggle pour Dark/Light mode avec icônes FontAwesome -->
+    <button id="themeToggle" class="theme-toggle"><i class="fa-solid fa-sun"></i></button>
+    <div class="hamburger" id="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#presentation">Présentation</a>
+      <a href="#features">Fonctionnalités</a>
+      <a href="#demo">Démo</a>
+    </div>
+  </header>
+
+  <!-- SECTION HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Détectez le Futur des Fake News</h1>
+      <p>Explorez une nouvelle ère de vérification grâce à des algorithmes visionnaires et une technologie de pointe en temps réel.</p>
+      <button class="btn" onclick="scrollToSection('demo')">Découvrir la Démo</button>
+    </div>
+  </section>
+
+  <!-- PRÉSENTATION -->
+  <section id="presentation">
+    <h2>Présentation du Projet</h2>
+    <p>
+      NewsDetection combine intelligence artificielle avancée et analyse sémantique de nouvelle génération pour détecter et neutraliser la désinformation avec une précision inégalée.
+      Conçu pour anticiper les défis de demain, il offre une approche futuriste pour un monde connecté.
+    </p>
+  </section>
+
+  <!-- FONCTIONNALITÉS -->
+  <section id="features">
+    <h2>Fonctionnalités Futuristes</h2>
+    <div class="features">
+      <div class="feature">
+        <h3>Analyse Sémantique 4.0</h3>
+        <p>Une compréhension contextuelle ultra-précise pour distinguer le vrai du faux.</p>
+      </div>
+      <div class="feature">
+        <h3>Détection en Temps Réel</h3>
+        <p>Surveillance continue grâce à des algorithmes adaptatifs et prédictifs.</p>
+      </div>
+      <div class="feature">
+        <h3>Interface Visionnaire</h3>
+        <p>Une expérience immersive et intuitive alliant design épuré et interactivité.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DÉMO INTERACTIVE -->
+  <section id="demo">
+    <h2>Démo Interactive</h2>
+    <p>Testez notre algorithme en saisissant un texte. Laissez notre système futuriste analyser le contenu et fournir un verdict simulé sur sa véracité.</p>
+    <textarea id="inputText" placeholder="Entrez un texte ici..." rows="4"></textarea>
+    <br/>
+    <button class="btn" id="analyzeBtn">Analyser</button>
+    <div id="result"></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2045 NewsDetection - Tous droits réservés.</p>
+  </footer>
+
+  <!-- Bouton Retour en Haut amélioré -->
+  <button id="backToTop" onclick="scrollToTop()">↑</button>
+
+  <script>
+    // Toggle Dark / Light Theme
+    const themeToggle = document.getElementById("themeToggle");
+    themeToggle.addEventListener("click", () => {
+      document.documentElement.classList.toggle("light-theme");
+      if(document.documentElement.classList.contains("light-theme")){
+        themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>'; // Icône pour revenir en dark mode
+      } else {
+        themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>'; // Icône pour passer en light mode
+      }
+    });
+
+    // Défilement fluide vers une section donnée
+    function scrollToSection(id) {
+      const target = document.getElementById(id);
+      const headerOffset = document.getElementById("header").offsetHeight;
+      const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+      window.scrollTo({ top: targetPosition, behavior: "smooth" });
+    }
+
+    // Gestion du menu mobile
+    const hamburger = document.getElementById("hamburger");
+    const mobileMenu = document.getElementById("mobileMenu");
+    hamburger.addEventListener("click", () => {
+      mobileMenu.style.display = mobileMenu.style.display === "flex" ? "none" : "flex";
+    });
+    document.querySelectorAll(".mobile-menu a").forEach(link => {
+      link.addEventListener("click", () => {
+        mobileMenu.style.display = "none";
+      });
+    });
+
+    // Header réactif & Bouton "Back to Top"
+    const header = document.getElementById("header");
+    const backToTop = document.getElementById("backToTop");
+    window.addEventListener("scroll", () => {
+      header.classList.toggle("scrolled", window.scrollY > 100);
+      backToTop.style.display = window.scrollY > 300 ? "flex" : "none";
+    });
+
+    // Révélation progressive des sections via Intersection Observer
+    const sections = document.querySelectorAll("section");
+    const observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.25 });
+    sections.forEach(section => observer.observe(section));
+
+    // Animation du fond en canvas : réseau de particules
+    const canvas = document.getElementById("bgCanvas");
+    const ctx = canvas.getContext("2d");
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    const particleCount = 150;
+    const particles = [];
+    const maxDistance = 100;
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        radius: Math.random() * 2 + 1
+      });
+    }
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particleCount; i++) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx = -p.vx;
+        if (p.y < 0 || p.y > canvas.height) p.vy = -p.vy;
+        let particleColor = getComputedStyle(document.documentElement)
+                              .getPropertyValue("--particle-color").trim();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = particleColor;
+        ctx.fill();
+      }
+      for (let i = 0; i < particleCount; i++) {
+        for (let j = i + 1; j < particleCount; j++) {
+          let dx = particles[i].x - particles[j].x;
+          let dy = particles[i].y - particles[j].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < maxDistance) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            let isLight = document.documentElement.classList.contains("light-theme");
+            let lineColor = isLight ? "rgba(0,0,0," : "rgba(255,255,255,";
+            ctx.strokeStyle = lineColor + (1 - dist / maxDistance) + ")";
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // Démo interactive : simulation de détection
+    document.getElementById("analyzeBtn").addEventListener("click", () => {
+      const text = document.getElementById("inputText").value.trim();
+      const resultDiv = document.getElementById("result");
+      const defaultTextColor = getComputedStyle(document.documentElement)
+                                  .getPropertyValue("--text-color").trim() || "#e0e0e0";
+      if (text === "") {
+        resultDiv.textContent = "Veuillez entrer un texte pour analyser.";
+        resultDiv.style.color = defaultTextColor;
+        return;
+      }
+      const probability = Math.floor(Math.random() * 100) + 1;
+      if (probability > 50) {
+        resultDiv.textContent = "Analyse : Le texte est très probablement une FAKE NEWS (" + probability + "%).";
+        resultDiv.style.color = "#ff5555";
+      } else {
+        resultDiv.textContent = "Analyse : Le texte semble fiable (" + (100 - probability) + "% de fiabilité).";
+        resultDiv.style.color = "#55ff55";
+      }
+    });
+
+    // Défilement fluide vers le haut
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  </script>
+</body>
+</html>
